@@ -1,0 +1,17 @@
+html {
+	font-size: 24px;
+}
+
+.paragraph {
+	line-height: 250%;
+}
+
+.token {
+	margin-inline: .1em;
+	border-bottom: 1px solid #00000080;
+}
+
+rt {
+	font-size: 60%;
+	letter-spacing: -.1em;
+}
