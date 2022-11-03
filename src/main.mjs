@@ -6,7 +6,7 @@ import FrontMatter from 'front-matter';
 
 const projectRoot = Path.resolve(Path.dirname(URL.fileURLToPath(import.meta.url)), '..');
 const lyricsRoot = Path.resolve(projectRoot, 'lyrics');
-const port = 8080;
+const port = 10002;
 
 const app = Express();
 
