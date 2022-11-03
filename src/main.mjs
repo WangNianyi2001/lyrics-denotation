@@ -10,12 +10,14 @@ const port = 8080;
 
 const app = Express();
 
+app.use('/static', Express.static('src/static'))
+
 app.get('/lyrics/*', function(req, res) {
 	try {
 		const id = Path.relative('/lyrics/', req.url);
 		const lyrics = (() => {
 			for(const filename of Fs.readdirSync(lyricsRoot)) {
-				const content = Fs.readFileSync(Path.resolve(lyricsRoot, filename), { encoding: 'utf-8' });
+				const content = Fs.readFileSync(Path.resolve(lyricsRoot, filename)).toString();
 				const fm = FrontMatter(content);
 				if(fm.attributes['id'] !== id)
 					continue;
@@ -24,7 +26,10 @@ app.get('/lyrics/*', function(req, res) {
 			return null;
 		})();
 		if(lyrics) {
-			res.writeHead(200);
+			res.writeHead(200, {
+				'Content-Type': 'text/json',
+				'Encoding': 'utf-8'
+			});
 			res.write(JSON.stringify(lyrics));
 		}
 		else {
@@ -45,14 +50,51 @@ const mimeTable = [
 	[/^(c|sc|sa)ss$/, 'text/css'],
 ];
 
-app.get('/*', function(req, res) {
-	let path = req.url;
-	if(path[path.length - 1] === '/')
-		path = '/index.html';
-	path = Path.relative('/', path);
+app.get('/', function(req, res) {
 	try {
-		const realPath = Path.join(projectRoot, 'src/static/', path);
-		const mime = (found => found || null)(mimeTable.find(([test]) => test.test(Path.extname(path).slice(1))));
+		const path = Path.join(projectRoot, 'src/index/index.html');
+		const data = Fs.readFileSync(path);
+
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write(data);
+	}
+	catch {
+		res.writeHead(404);
+	}
+	finally {
+		res.end();
+	}
+});
+
+app.get('/entries', function(req, res) {
+	try {
+		const lyricsPath = Path.join(projectRoot, 'lyrics');
+		const data = [];
+		for(const fileName of Fs.readdirSync(lyricsPath)) {
+			const file = Fs.readFileSync(Path.join(lyricsPath, fileName)).toString();
+			const fm = FrontMatter(file);
+			data.push(fm.attributes);
+		}
+
+		res.writeHead(200, { 'Content-Type': 'text/json' });
+		res.write(JSON.stringify(data));
+	}
+	catch {
+		res.writeHead(404);
+	}
+	finally {
+		res.end();
+	}
+});
+
+app.get('/view/*', function(req, res) {
+	let path = req.url;
+	path = /\/([^\/]*)$/.exec(path)[1];
+	if(!path.length)
+		path = 'index.html';
+	try {
+		const realPath = Path.join(projectRoot, 'src/view/', path);
+		const mime = mimeTable.find(([test]) => test.test(Path.extname(path).slice(1))) || null;
 		const content = Fs.readFileSync(realPath);
 
 		const header = {};

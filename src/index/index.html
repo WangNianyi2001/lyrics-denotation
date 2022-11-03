@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Lyrics</title>
+</head>
+<body>
+	<h1>Lyrics</h1>
+	<ul id="entries"></ul>
+	<script>(async () => {
+		const list = await (await fetch('entries')).json();
+		const $entries = document.getElementById('entries');
+		for(const entry of list) {
+			const $li = document.createElement('li');
+			const $a = document.createElement('a');
+			$a.href = `/view/${entry.id}/`;
+			$a.append(entry.name);
+			$li.append($a);
+			$entries.append($li);
+		}
+	})();</script>
+</body>
+</html>
